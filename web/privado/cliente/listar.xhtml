@@ -1,0 +1,231 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Clientes</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem" prependId="false">
+                <p:growl id="growl"/>
+                <p:commandButton actionListener="#{controleCliente.novo()}" value="Novo Cliente"
+                                 icon="ui-icon-plus"
+                                 oncomplete="PF('dlg').show();"
+                                 update=":formEdicao"/>
+                <div align="center">
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu id="ordem" value="#{controleCliente.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id" />
+                            <f:selectItem itemLabel="Nome" itemValue="nome" />
+                            <p:ajax update="listagem"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro: "/>
+                        <p:inputText value="#{controleCliente.dao.filtro}">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Filtrar" update="listagem"/>
+                        <p:outputLabel value="Maximo de objetos"/>
+                        <p:inputText value="#{controleCliente.dao.maximoObjetos}" size="3">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Primeiro" actionListener="#{controleCliente.dao.primeiro()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Anterior" actionListener="#{controleCliente.dao.anterior()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Proximo" actionListener="#{controleCliente.dao.proximo()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Ultimo" actionListener="#{controleCliente.dao.ultimo()}"
+                                         update="listagem"/>
+                    </p:panelGrid>
+                </div>
+                <p:dataTable value="#{controleCliente.dao.listaObjetos}"
+                             var="obj" id="listagem">
+                    <f:facet name="header">
+                        <p:outputLabel value="Listagem de Clientes"/>
+                    </f:facet>
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleCliente.dao.mensagemNavegacao}"/>
+                    </f:facet>
+                    <p:column headerText="ID">
+                        <p:outputLabel value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Nome">
+                        <p:outputLabel value="#{obj.nome}"/>
+                    </p:column>
+                    <p:column headerText="Telefone">
+                        <p:outputLabel value="#{obj.telefone}"/>
+                    </p:column>
+                    <p:column headerText="CPF">
+                        <p:outputLabel value="#{obj.rg}"/>
+                    </p:column>
+                    <p:column headerText="RG">
+                        <p:outputLabel value="#{obj.cpf}"/>
+                    </p:column>
+                    <p:column headerText="Data de Nascimento">
+                        <p:outputLabel value="#{obj.data_nascimento}">
+                            <f:converter converterId="converterCalendar"/>
+                        </p:outputLabel>
+                    </p:column>
+
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton actionListener="#{controleCliente.editar(obj.id)}"
+                                             icon="ui-icon-pencil"
+                                             update=":formEdicao"
+                                             process="@form"
+                                             oncomplete="PF('dlg').show();"
+                                             id="btnAlterar"/>
+                            <p:commandButton actionListener="#{controleCliente.remover(obj.id)}"
+                                             icon="ui-icon-trash"
+                                             update="@form"
+                                             process="@form"
+                                             id="btnExcluir"
+                                             onclick="if (!confirm('Confirma a exclusão do objeto'))
+                                                         return false"/>
+                            <p:commandButton value="Imprimir"
+                                             action="#{controleCliente.imprimir(obj.id)}"
+                                             ajax="false"
+                                             onclick="this.form.target='_blank';"/>
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+        </ui:define>
+
+        <ui:define name="dialogos">
+            <p:dialog widgetVar="dlg" header="Edição"
+                      resizable="false" modal="true" width="800">
+                <h:form id="formEdicao" prependId="false">
+                    <p:growl/>
+                    <p:tabView id="tab">
+                        <p:tab title="Dados Principais">
+                            <div align="center">
+                                <p:panelGrid columns="2">
+                                    <f:facet name="footer">
+                                        <div align="center">
+                                            <p:commandButton value="Salvar"
+                                                             icon="ui-icon-disk"
+                                                             actionListener="#{controleCliente.salvar()}"
+                                                             update=":formEdicao :formListagem"
+                                                             oncomplete="if(!args.validationFailed){PF('dlg').hide();}"/>
+                                        </div>
+                                    </f:facet>
+                                    <p:outputLabel value="ID"/>
+                                    <p:inputText value="#{controleCliente.objeto.id}"
+                                                 size="5" readonly="true"/>
+
+                                    <p:outputLabel value="Nome" for="txtNome"/>
+                                    <p:inputText value="#{controleCliente.objeto.nome}"
+                                                 size="40" maxlength="50" id="txtNome"/>
+                                    <p:outputLabel value="Telefone" for="txtTelefone"/>
+                                    <p:inputMask value="#{controleCliente.objeto.telefone}"
+                                                 size="14" maxlength="14" id="txtTelefone"
+                                                 mask="(99)9999-9999"/>
+                                    <p:outputLabel value="E-mail" for="txtEmail"/>
+                                    <p:inputText value="#{controleCliente.objeto.email}"
+                                                 size="40" maxlength="50" id="txtEmail"/>
+                                    <p:outputLabel value="Endereço" for="txtEndereco"/>
+                                    <p:inputText value="#{controleCliente.objeto.endereco}"
+                                                 size="40" maxlength="60" id="txtEndereco"/>
+                                    <p:outputLabel value="Cidade" for="txtCidade"/>
+                                    <p:inputText value="#{controleCliente.objeto.cidade}"
+                                                 size="40" maxlength="50" id="txtCidade"/>
+                                    
+                                    <p:outputLabel value="RG" for="txtRg"/>
+                                    <p:inputText value="#{controleCliente.objeto.rg}"
+                                                 size="10" maxlength="10" id="txtRg"/>
+                                    <p:outputLabel value="CPF" for="txtCpf"/>
+                                    <p:inputMask value="#{controleCliente.objeto.cpf}"
+                                                 size="14" maxlength="14" id="txtCpf"
+                                                 mask="999.999.999-99"/>
+                                    <p:outputLabel value="Data de Nascimento" for="txtNascimento"/>
+                                    <p:calendar value="#{controleCliente.objeto.data_nascimento}"
+                                                id="txtNascimento" mask="true" locale="pt_BR"
+                                                pattern="dd/MM/yyyy">
+                                        <f:converter converterId="converterCalendar"/>
+                                    </p:calendar>
+
+                                </p:panelGrid>
+                            </div>
+                        </p:tab>
+                        <p:tab title="Interesses de Filmes">
+                            <p:dataTable value="#{controleCliente.objeto.interesses}"
+                                         var="interesse" rowIndexVar="idx"
+                                         id="listaInteresses">
+                                <f:facet name="header">
+                                    <p:commandButton value="Novo Interesse"
+                                                     actionListener="#{controleCliente.novoFilme()}"
+                                                     update=":formInteresse"
+                                                     icon="ui-icon-plus"
+                                                     id="btnNovoInteresse"
+                                                     process="btnNovoInteresse"
+                                                     oncomplete="PF('dlgInteresse').show();"/>
+                                </f:facet>
+                                <p:column headerText="ID">
+                                    <p:outputLabel value="#{interesse.id}"/>
+                                </p:column>
+                                <p:column headerText="Título">
+                                    <p:outputLabel value="#{interesse.titulo}"/>
+                                    </p:column>
+                             
+
+                                <p:column headerText="Ações">
+                                    <div align="center">
+                                        <p:commandButton id="btnAlterarInteresse"
+                                                         icon="ui-icon-pencil"
+                                                         actionListener="#{controleCliente.alterarFilme(idx)}"
+                                                         update=":formInteresse" process="btnAlterarInteresse"
+                                                         oncomplete="PF('dlgInteresse').show();"/>
+                                        <p:commandButton id="btnRemoverInteresse"
+                                                         icon="ui-icon-trash"
+                                                         actionListener="#{controleCliente.removerFilme(idx)}"
+                                                         process="btnRemoverInteresse"
+                                                         update="listaInteresses :formListagem:growl"
+                                                         onclick="if (!confirm('Confirma a exclusão?'))
+                                                                     return false"/>
+                                    </div>
+                                </p:column>
+                                
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>
+                </h:form>
+            </p:dialog>
+            <p:dialog widgetVar="dlgInteresse" header="Edição de Interesses"
+                      resizable="false" modal="true">
+                <h:form id="formInteresse">
+                    <p:growl/>
+                    <p:panelGrid columns="2">
+                        <f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton
+                                    id="btnAdicionarInteresse"
+                                    value="Salvar" icon="ui-icon-disk"
+                                    actionListener="#{controleCliente.salvarFilme()}"
+                                    update=":formEdicao:tab:listaInteresses :formInteresse"
+                                    process="@form"
+                                    oncomplete="if(!args.validationFailed){PF('dlgInteresse').hide();}"/>
+                            </div>
+                        </f:facet>
+                       
+                        <p:outputLabel value="Filme" for="selectFilme"/>
+                        <p:selectOneMenu id="selectFilme" value="#{controleCliente.filme.titulo}">
+                            <f:converter converterId="converterFilme"/>
+                            <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true"/>
+                            <f:selectItems value="#{controleCliente.daoFilme.listaTodos}"
+                                           var="p" itemLabel="#{p.titulo}"/>
+                        </p:selectOneMenu>
+                        
+                        
+
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </ui:define>
+    </ui:composition>
+</html>
+

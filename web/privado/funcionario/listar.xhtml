@@ -1,0 +1,247 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Funcionários</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem" prependId="false">
+                <p:growl id="growl"/>
+                <p:commandButton actionListener="#{controleFuncionario.novo()}" value="Novo Funcionário"
+                                 icon="ui-icon-plus"
+                                 oncomplete="PF('dlg').show();"
+                                 update=":formEdicao"/>
+                <div align="center">
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu id="ordem" value="#{controleFuncionario.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id" />
+                            <f:selectItem itemLabel="Nome" itemValue="nome" />
+                            <p:ajax update="listagem"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro: "/>
+                        <p:inputText value="#{controleFuncionario.dao.filtro}">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Filtrar" update="listagem"/>
+                        <p:outputLabel value="Maximo de objetos"/>
+                        <p:inputText value="#{controleFuncionario.dao.maximoObjetos}" size="3">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Primeiro" actionListener="#{controleFuncionario.dao.primeiro()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Anterior" actionListener="#{controleFuncionario.dao.anterior()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Proximo" actionListener="#{controleFuncionario.dao.proximo()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Ultimo" actionListener="#{controleFuncionario.dao.ultimo()}"
+                                         update="listagem"/>
+                    </p:panelGrid>
+                </div>
+                <p:dataTable value="#{controleFuncionario.dao.listaObjetos}"
+                             var="obj" id="listagem">
+                    <f:facet name="header">
+                        <p:outputLabel value="Listagem de Funcionários"/>
+                    </f:facet>
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleFuncionario.dao.mensagemNavegacao}"/>
+                    </f:facet>
+                    <p:column headerText="ID">
+                        <p:outputLabel value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Nome">
+                        <p:outputLabel value="#{obj.nome}"/>
+                    </p:column>
+                    <p:column headerText="Telefone">
+                        <p:outputLabel value="#{obj.telefone}"/>
+                    </p:column>
+                    <p:column headerText="Login">
+                        <p:outputLabel value="#{obj.login}"/>
+                    </p:column>
+                    <p:column headerText="Senha">
+                        <p:outputLabel value="#{obj.senha}"/>
+                    </p:column>
+                    
+
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton actionListener="#{controleFuncionario.editar(obj.id)}"
+                                             icon="ui-icon-pencil"
+                                             update=":formEdicao"
+                                             process="@form"
+                                             oncomplete="PF('dlg').show();"
+                                             id="btnAlterar"/>
+                            <p:commandButton actionListener="#{controleFuncionario.remover(obj.id)}"
+                                             icon="ui-icon-trash"
+                                             update="@form"
+                                             process="@form"
+                                             id="btnExcluir"
+                                             onclick="if (!confirm('Confirma a exclusão do objeto'))
+                                                         return false"/>
+                            
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+        </ui:define>
+
+        <ui:define name="dialogos">
+            <p:dialog widgetVar="dlg" header="Edição"
+                      resizable="false" modal="true" width="800">
+                <h:form id="formEdicao" prependId="false">
+                    <p:growl/>
+                    <p:tabView id="tab">
+                        <p:tab title="Dados Principais">
+                            <div align="center">
+                                <p:panelGrid columns="2">
+                                    <f:facet name="footer">
+                                        <div align="center">
+                                            <p:commandButton value="Salvar"
+                                                             icon="ui-icon-disk"
+                                                             actionListener="#{controleFuncionario.salvar()}"
+                                                             update=":formEdicao :formListagem"
+                                                             oncomplete="if(!args.validationFailed){PF('dlg').hide();}"/>
+                                        </div>
+                                    </f:facet>
+                                    <p:outputLabel value="ID"/>
+                                    <p:inputText value="#{controleFuncionario.objeto.id}"
+                                                 size="5" readonly="true"/>
+
+                                    <p:outputLabel value="Nome" for="txtNome"/>
+                                    <p:inputText value="#{controleFuncionario.objeto.nome}"
+                                                 size="40" maxlength="50" id="txtNome"/>
+                                    <p:outputLabel value="Telefone" for="txtTelefone"/>
+                                    <p:inputMask value="#{controleFuncionario.objeto.telefone}"
+                                                 size="14" maxlength="14" id="txtTelefone"
+                                                 mask="(99)9999-9999"/>
+                                    <p:outputLabel value="E-mail" for="txtEmail"/>
+                                    <p:inputText value="#{controleFuncionario.objeto.email}"
+                                                 size="40" maxlength="50" id="txtEmail"/>
+                                    <p:outputLabel value="Endereço" for="txtEndereco"/>
+                                    <p:inputText value="#{controleFuncionario.objeto.endereco}"
+                                                 size="40" maxlength="60" id="txtEndereco"/>
+                                    <p:outputLabel value="Cidade" for="txtCidade"/>
+                                    <p:inputText value="#{controleFuncionario.objeto.cidade}"
+                                                 size="40" maxlength="50" id="txtCidade"/>
+                                    <p:outputLabel value="Login" for="txtLogin"/>
+                                    <p:inputText value="#{controleFuncionario.objeto.login}"
+                                                 size="20" maxlength="20" id="txtLogin"/>
+                                    <p:outputLabel value="Senha" for="txtSenha"/>
+                                    <p:password value="#{controleFuncionario.objeto.senha}"
+                                                 size="15" maxlength="15" id="txtSenha"/>
+
+                                </p:panelGrid>
+                            </div>
+                        </p:tab>
+                        <p:tab title="Clientes do Funcionário">
+                            <p:dataTable value="#{controleFuncionario.objeto.atende}"
+                                         var="atende" rowIndexVar="idx"
+                                         id="listaAtende">
+                                <f:facet name="header">
+                                    <p:commandButton value="Novo Cliente"
+                                                     actionListener="#{controleFuncionario.novoCliente()}"
+                                                     update=":formAtende"
+                                                     icon="ui-icon-plus"
+                                                     id="btnNovoCliente"
+                                                     process="btnNovoCliente"
+                                                     oncomplete="PF('dlgAtende').show();"/>
+                                </f:facet>
+                                <p:column headerText="ID">
+                                    <p:outputLabel value="#{atende.id}"/>
+                                </p:column>
+                                <p:column headerText="Nome">
+                                    <p:outputLabel value="#{atende.nome}"/>
+                                </p:column>
+                                <p:column headerText="Telefone">
+                                    <p:outputLabel value="#{atende.telefone}"/>
+                                </p:column>
+                                <p:column headerText="CPF">
+                                    <p:outputLabel value="#{atende.cpf}"/>
+                                </p:column>
+                                <p:column headerText="RG">
+                                    <p:outputLabel value="#{atende.RG}"/>
+                                </p:column>
+
+
+                                <p:column headerText="Ações">
+                                    <div align="center">
+                                        <p:commandButton id="btnAlterarCliente"
+                                                         icon="ui-icon-pencil"
+                                                         actionListener="#{controleFuncionario.alterarCliente(idx)}"
+                                                         update=":formAtende" process="btnAlterarCliente"
+                                                         oncomplete="PF('dlgAtende').show();"/>
+                                        <p:commandButton id="btnRemoverCliente"
+                                                         icon="ui-icon-trash"
+                                                         actionListener="#{controleFuncionario.removerCliente(idx)}"
+                                                         process="btnRemoverCliente"
+                                                         update="listaAtende :formListagem:growl"
+                                                         onclick="if (!confirm('Confirma a exclusão?'))
+                                                                     return false"/>
+                                    </div>
+                                </p:column>
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>
+                </h:form>
+            </p:dialog>
+            <p:dialog widgetVar="dlgAtende" header="Edição de Clientes do Funcionário"
+                      resizable="false" modal="true">
+                <h:form id="formAtende">
+                    <p:growl/>
+                    <p:panelGrid columns="2">
+                        <f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton
+                                    id="btnAdicionarCliente"
+                                    value="Salvar" icon="ui-icon-disk"
+                                    actionListener="#{controleFuncionario.salvarCliente()}"
+                                    update=":formEdicao:tab:listaAtende :formAtende"
+                                    process="@form"
+                                    oncomplete="if(!args.validationFailed){PF('dlgAtende').hide();}"/>
+                            </div>
+                        </f:facet>
+                        <p:outputLabel value="ID"/>
+                        <p:inputText value="#{controleFuncionario.cliente.id}" readonly="true"/>
+                        <p:outputLabel value="Nome" for="txtNome"/>
+                        <p:inputText value="#{controleFuncionario.cliente.nome}"
+                                     id="txtNome" maxlength="40" size="50">
+                        </p:inputText>
+                        <p:outputLabel value="Telefone" for="txtTelefone"/>
+                        <p:inputMask value="#{controleFuncionario.cliente.telefone}"
+                                     size="14" maxlength="14" id="txtTelefone"
+                                     mask="(99)9999-9999"/>
+                        <p:outputLabel value="E-mail" for="txtEmail"/>
+                        <p:inputText value="#{controleFuncionario.cliente.email}"
+                                     size="40" maxlength="50" id="txtEmail"/>
+                        <p:outputLabel value="Endereço" for="txtEndereco"/>
+                        <p:inputText value="#{controleFuncionario.cliente.endereco}"
+                                     size="40" maxlength="60" id="txtEndereco"/>
+                        <p:outputLabel value="Cidade" for="txtCidade"/>
+                        <p:inputText value="#{controleFuncionario.cliente.cidade}"
+                                     size="40" maxlength="50" id="txtCidade"/>
+
+                        <p:outputLabel value="RG" for="txtRg"/>
+                        <p:inputText value="#{controleFuncionario.cliente.rg}"
+                                     size="10" maxlength="10" id="txtRg"/>
+                        <p:outputLabel value="CPF" for="txtCpf"/>
+                        <p:inputMask value="#{controleFuncionario.cliente.cpf}"
+                                     size="14" maxlength="14" id="txtCpf"
+                                     mask="999.999.999-99"/>
+                        <p:outputLabel value="Data de Nascimento" for="txtNascimento"/>
+                        <p:calendar value="#{controleFuncionario.cliente.data_nascimento}"
+                                    id="txtNascimento" mask="true" locale="pt_BR"
+                                    pattern="dd/MM/yyyy">
+                            <f:converter converterId="converterCalendar"/>
+                        </p:calendar>
+
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </ui:define>
+    </ui:composition>
+</html>
+

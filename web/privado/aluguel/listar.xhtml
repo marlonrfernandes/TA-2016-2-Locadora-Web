@@ -1,0 +1,236 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Aluguéis</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem" prependId="false">
+                <p:growl id="growl"/>
+                <p:commandButton actionListener="#{controleAluguel.novo()}" value="Nova Aluguel"
+                                 icon="ui-icon-plus"
+                                 oncomplete="PF('dlg').show();"
+                                 update=":formEdicao"/>
+                <div align="center">
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu id="ordem" value="#{controleAluguel.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id" />
+                            <f:selectItem itemLabel="Pessoa" itemValue="pessoa.nome" />
+                            <p:ajax update="listagem"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro: "/>
+                        <p:inputText value="#{controleAluguel.dao.filtro}">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Filtrar" update="listagem"/>
+                        <p:outputLabel value="Maximo de objetos"/>
+                        <p:inputText value="#{controleAluguel.dao.maximoObjetos}" size="3">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Primeiro" actionListener="#{controleAluguel.dao.primeiro()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Anterior" actionListener="#{controleAluguel.dao.anterior()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Proximo" actionListener="#{controleAluguel.dao.proximo()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Ultimo" actionListener="#{controleAluguel.dao.ultimo()}"
+                                         update="listagem"/>
+                    </p:panelGrid>
+                </div>
+                <p:dataTable value="#{controleAluguel.dao.listaObjetos}"
+                             var="obj" id="listagem">
+                    <f:facet name="header">
+                        <p:outputLabel value="Listagem de Aluguéis"/>
+                    </f:facet>
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleAluguel.dao.mensagemNavegacao}"/>
+                    </f:facet>
+                    <p:column headerText="Número da Nota">
+                        <p:outputLabel value="#{obj.id.numeroNota}"/>
+                    </p:column>
+                    <p:column headerText="Pessoa">
+                        <p:outputLabel value="#{obj.id.pessoa.nome}"/>
+                    </p:column>                    
+                    <p:column headerText="Data">
+                        <p:outputLabel value="#{obj.data}">
+                            <f:converter converterId="converterCalendar"/>
+                        </p:outputLabel>
+                    </p:column> 
+                    <p:column headerText="Valor Total">
+                        <p:outputLabel value="#{obj.valorTotal}">
+                            <f:convertNumber pattern="R$ 0.00"/>
+                        </p:outputLabel>
+                    </p:column>  
+                    
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton actionListener="#{controleAluguel.editar(obj.id)}"
+                                             icon="ui-icon-pencil"
+                                             update=":formEdicao"
+                                             process="@form"
+                                             oncomplete="PF('dlg').show();"
+                                             id="btnAlterar"/>
+                            <p:commandButton actionListener="#{controleAluguel.remover(obj.id)}"
+                                             icon="ui-icon-trash"
+                                             update="@form"
+                                             process="@form"
+                                             id="btnExcluir"
+                                             onclick="if (!confirm('Confirma a exclusão do objeto'))
+                                                         return false"/>
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+        </ui:define>
+
+        <ui:define name="dialogos">
+            <p:dialog widgetVar="dlg" header="Edição"
+                      resizable="false" modal="true" width="700">
+                <h:form id="formEdicao" prependId="false">
+                    <p:growl/>
+                    <p:tabView id="tab">
+                        <p:tab title="Dados Principais">
+                            <div align="center">
+                                <p:panelGrid columns="2">
+                                    <f:facet name="footer">
+                                        <div align="center">
+                                            <p:commandButton value="Salvar"
+                                                             icon="ui-icon-disk"
+                                                             actionListener="#{controleAluguel.salvar()}"
+                                                             update=":formEdicao :formListagem"
+                                                             oncomplete="if(!args.validationFailed){PF('dlg').hide();}"/>
+                                        </div>
+                                    </f:facet>
+                                    <p:outputLabel value="Número da Nota" for="txtNumeroNota"/>
+                                    <p:inputText value="#{controleAluguel.objeto.id.numeroNota}"
+                                                 size="5"  maxlength="5" id="txtNumeroNota"/>
+
+
+                                    <p:outputLabel value="Pessoa" for="selectPessoa"/>
+                                    <p:selectOneMenu id="selectPessoa"
+                                                     value="#{controleAluguel.objeto.id.pessoa}">
+                                        <f:converter converterId="converterPessoa"/>
+                                        <f:selectItem itemLabel="Selecione um Registro" noSelectionOption="true"/>
+                                        <f:selectItems value="#{controleAluguel.daoCliente.listaTodos}"
+                                                       var="p" itemLabel="#{p.nome}"/>
+                                    </p:selectOneMenu>
+
+                                    <p:outputLabel value="Data" for="txtData"/>
+                                    <p:calendar value="#{controleAluguel.objeto.data}"
+                                                id="txtData" mask="true" locale="pt_BR"
+                                                pattern="dd/MM/yyyy">
+                                        <f:converter converterId="converterCalendar"/>
+                                    </p:calendar>
+
+                                    <p:outputLabel value="Valor Total" for="txtValorTotal"/>
+                                    <p:inputText value="#{controleAluguel.objeto.valorTotal}"
+                                                 size="12" maxlength="12" id="txtValorTotal"/>
+
+                                    
+                                </p:panelGrid>
+                            </div>
+                        </p:tab>
+                        <p:tab title="Itens do Aluguel">
+                            <p:dataTable value="#{controleAluguel.objeto.itens}"
+                                         var="item" rowIndexVar="idx"
+                                         id="listaItens">
+                                <f:facet name="header">
+                                    <p:commandButton value="Novo Item"
+                                                     actionListener="#{controleAluguel.novoItem()}"
+                                                     update=":formItem"
+                                                     icon="ui-icon-plus"
+                                                     id="btnNovoItem"
+                                                     process="btnNovoItem"
+                                                     oncomplete="PF('dlgItem').show();"/>
+                                </f:facet>
+                                <p:column headerText="ID">
+                                    <p:outputLabel value="#{item.id}"/>
+                                </p:column>
+                                <p:column headerText="Filme">
+                                    <p:outputLabel value="#{item.filme.titulo}"/>
+                                </p:column>
+                                <p:column headerText="Quantidade">
+                                    <p:outputLabel value="#{item.quantidade}"/>
+                                </p:column>
+                                <p:column headerText="Valor Unitário">
+                                    <p:outputLabel value="#{item.valorUnitario}"/>
+                                </p:column>
+                                <p:column headerText="Valor Total">
+                                    <p:outputLabel value="#{item.valorTotal}"/>
+                                </p:column>
+                                <p:column headerText="Ações">
+                                    <div align="center">
+                                        <p:commandButton id="btnAlterarItem"
+                                                         icon="ui-icon-pencil"
+                                                         actionListener="#{controleAluguel.alterarItem(idx)}"
+                                                         update=":formItem" process="btnAlterarItem"
+                                                         oncomplete="PF('dlgItem').show();"/>
+                                        <p:commandButton id="btnRemoverItem"
+                                                         icon="ui-icon-trash"
+                                                         actionListener="#{controleAluguel.removerItem(idx)}"
+                                                         process="btnRemoverItem"
+                                                         update="listaItens :formListagem:growl 
+                                                         :formEdicao:tab:txtValorTotal"
+                                                         onclick="if (!confirm('Confirma a exclusão?'))
+                                                                     return false"/>
+                                    </div>
+                                </p:column>
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>
+                </h:form>
+            </p:dialog>
+            <p:dialog widgetVar="dlgItem" header="Edição de Item do Aluguel"
+                      resizable="false" modal="true">
+                <h:form id="formItem">
+                    <p:growl/>
+                    <p:panelGrid columns="2">
+                                 <f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton
+                                    id="btnAdicionarItem"
+                                    value="Salvar" icon="ui-icon-disk"
+                                    actionListener="#{controleAluguel.salvarItem()}"
+                                    update=":formEdicao:tab:listaItens :formItem 
+                                    :formEdicao:tab:txtValorTotal"
+                                    process="@form"
+                                    oncomplete="if(!args.validationFailed){PF('dlgItem').hide();}"/>
+                            </div>
+                        </f:facet>
+                        <p:outputLabel value="ID"/>
+                        <p:inputText value="#{controleAluguel.item.id}" readonly="true"/>
+                        <p:outputLabel value="Filme" for="selectFilme"/>
+                        <p:selectOneMenu id="selectFilme" value="#{controleAluguel.item.filme}">
+                            <f:converter converterId="converterFilme"/>
+                            <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true"/>
+                            <f:selectItems value="#{controleAluguel.daoFilme.listaTodos}"
+                                           var="p" itemLabel="#{p.titulo}"/>
+                            <p:ajax update="txtValorUnitario"
+                                    listener="#{controleAluguel.atualizaValorUnitario()}"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Quantidade" for="txtQuantidade"/>
+                        <p:inputText value="#{controleAluguel.item.quantidade}"
+                                     id="txtQuantidade" maxlength="12" size="12">
+                            <p:ajax update="txtValorTotal"
+                                    listener="#{controleAluguel.calculaValorTotalItem()}"
+                                    event="blur"/>
+                        </p:inputText>
+                        <p:outputLabel value="Valor Unitário" for="txtValorUnitario"/>
+                        <p:inputText value="#{controleAluguel.item.valorUnitario}"
+                                     id="txtValorUnitario" readonly="true"/>
+                        <p:outputLabel value="Valor Total" for="txtValorTotal"/>
+                        <p:inputText value="#{controleAluguel.item.valorTotal}"
+                                     id="txtValorTotal" readonly="true"/>
+
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </ui:define>
+    </ui:composition>
+</html>
+

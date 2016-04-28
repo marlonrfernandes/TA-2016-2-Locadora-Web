@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Filmes</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem" prependId="false">
+                <p:growl id="growl"/>
+                <p:commandButton actionListener="#{controleFilme.novo()}" value="Novo Filme"
+                                 icon="ui-icon-plus"
+                                 oncomplete="PF('dlg').show();"
+                                 update=":formEdicao"/>
+                <div align="center">
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu id="ordem" value="#{controleFilme.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id" />
+                            <f:selectItem itemLabel="Título" itemValue="titulo" />
+                            <p:ajax update="listagem"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro: "/>
+                        <p:inputText value="#{controleFilme.dao.filtro}">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Filtrar" update="listagem"/>
+                        <p:outputLabel value="Maximo de objetos"/>
+                        <p:inputText value="#{controleFilme.dao.maximoObjetos}" size="3">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Primeiro" actionListener="#{controleFilme.dao.primeiro()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Anterior" actionListener="#{controleFilme.dao.anterior()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Proximo" actionListener="#{controleFilme.dao.proximo()}"
+                                         update="listagem"/>
+                        <p:commandButton value="Ultimo" actionListener="#{controleFilme.dao.ultimo()}"
+                                         update="listagem"/>
+                    </p:panelGrid>
+                </div>
+                <p:dataTable value="#{controleFilme.dao.listaObjetos}"
+                             var="obj" id="listagem">
+                    <f:facet name="header">
+                        <p:outputLabel value="Listagem de Filmes"/>
+                    </f:facet>
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleFilme.dao.mensagemNavegacao}"/>
+                    </f:facet>
+                    <p:column headerText="ID">
+                        <p:outputLabel value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Título">
+                        <p:outputLabel value="#{obj.titulo}"/>
+                    </p:column>                    
+                    <p:column headerText="Diretor">
+                        <p:outputLabel value="#{obj.diretor}"/>
+                    </p:column> 
+                    <p:column headerText="Ano">
+                        <p:outputLabel value="#{obj.ano}"/>
+                    </p:column> 
+                    <p:column headerText="Lançamento">
+                        <p:outputLabel value="#{obj.lancamento}"/>
+                    </p:column>                    
+
+
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton actionListener="#{controleFilme.editar(obj.id)}"
+                                             icon="ui-icon-pencil"
+                                             update=":formEdicao"
+                                             process="@form"
+                                             oncomplete="PF('dlg').show();"
+                                             id="btnAlterar"/>
+                            <p:commandButton actionListener="#{controleFilme.remover(obj.id)}"
+                                             icon="ui-icon-trash"
+                                             update="@form"
+                                             process="@form"
+                                             id="btnExcluir"
+                                             onclick="if (!confirm('Confirma a exclusão do objeto'))
+                                                         return false"/>
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+        </ui:define>
+
+        <ui:define name="dialogos">
+            <p:dialog widgetVar="dlg" header="Edição"
+                      resizable="false" modal="true" width="700">
+                <h:form id="formEdicao" prependId="false">
+                    <p:growl/>
+                    <p:tabView id="tab">
+                        <p:tab title="Dados Principais">
+                            <div align="center">
+                                <p:panelGrid columns="2">
+                                    <f:facet name="footer">
+                                        <div align="center">
+                                            <p:commandButton value="Salvar"
+                                                             icon="ui-icon-disk"
+                                                             actionListener="#{controleFilme.salvar()}"
+                                                             update=":formEdicao :formListagem"
+                                                             oncomplete="if(!args.validationFailed){PF('dlg').hide();}"/>
+                                        </div>
+                                    </f:facet>
+                                    <p:outputLabel value="ID"/>
+                                    <p:inputText value="#{controleFilme.objeto.id}"
+                                                 size="5" readonly="true"/>
+                                    <p:outputLabel value="Título" for="txtTitulo"/>
+                                    <p:inputText value="#{controleFilme.objeto.titulo}"
+                                                 size="40" maxlength="50" id="txtTitulo"/>
+                                    <p:outputLabel value="Diretor" for="txtDiretor"/>
+                                    <p:inputText value="#{controleFilme.objeto.diretor}"
+                                                 size="40" maxlength="50" id="txtDiretor"/> 
+                                    <p:outputLabel value="Quantidade" for="txtQuantidade"/>
+                                    <p:inputText value="#{controleFilme.objeto.quantidade}"
+                                                 size="10" maxlength="10" id="txtQuantidade"/> 
+                                    <p:outputLabel value="Preço" for="txtPreco"/>
+                                    <p:inputText value="#{controleFilme.objeto.preco}"
+                                                 size="10" maxlength="10" id="txtPreco"
+                                                 /> 
+                                    <p:outputLabel value="Ano" for="txtAno"/>
+                                    <p:inputText value="#{controleFilme.objeto.ano}"
+                                                 size="10" maxlength="10" id="txtAno"/> 
+                                    <p:outputLabel value="Sinopse" for="txtSinopse"/>
+                                    <p:inputTextarea value="#{controleFilme.objeto.sinopse}"
+                                                     maxlength="800" id="txtSinopse" cols="38" rows="5" autoResize="false"/> 
+                                    <p:outputLabel value="Lançamento" for="selectLancamento"/>
+                                    <p:selectOneMenu value="#{controleFilme.objeto.lancamento}"
+                                                     id="selectLancamento">
+                                        <f:selectItem itemLabel="Selecione uma opção" noSelectionOption="true"/>
+                                        <f:selectItem itemLabel="Sim" itemValue="Sim"/>
+                                        <f:selectItem itemLabel="Não" itemValue="Não"/>
+                                    </p:selectOneMenu>
+                                    <p:outputLabel value="Formato" for="selectFormato"/>
+                                    <p:selectOneMenu value="#{controleFilme.objeto.formato}"
+                                                     id="selectFormato">
+                                        <f:selectItem itemLabel="Selecione uma opção" noSelectionOption="true"/>
+                                        <f:selectItem itemLabel="Normal" itemValue="Normal"/>
+                                        <f:selectItem itemLabel="720p" itemValue="720p"/>
+                                        <f:selectItem itemLabel="1080p" itemValue="1080p"/>
+                                    </p:selectOneMenu>
+                                    <p:outputLabel value="Duração" for="txtDuracao"/>
+                                    <p:inputText value="#{controleFilme.objeto.duracao}"
+                                                 size="15" maxlength="15" id="txtDuracao"/>
+                                    <p:outputLabel value="Tipo" for="selectTipo"/>
+                                    <p:selectOneMenu value="#{controleFilme.objeto.tipo}"
+                                                     id="selectTipo">
+                                        <f:selectItem itemLabel="Selecione uma opção" noSelectionOption="true"/>
+                                        <f:selectItem itemLabel="DVD" itemValue="DVD"/>
+                                        <f:selectItem itemLabel="Blu-Ray" itemValue="Blu-Ray"/>
+                                    </p:selectOneMenu>
+                                    <p:outputLabel value="Gênero" for="selectGenero"/>
+                                    <p:selectOneMenu id="selectGenero" value="#{controleFilme.objeto.genero}">
+                                        <f:converter converterId="converterGenero"/>
+                                        <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true"/>
+                                        <f:selectItems value="#{controleFilme.daoGenero.listaTodos}"
+                                                       var="p" itemLabel="#{p.nome}"/>
+                                    </p:selectOneMenu>
+
+
+                                </p:panelGrid>
+                            </div>
+                        </p:tab>
+                        <p:tab title="Elenco">
+                            <p:dataTable value="#{controleFilme.objeto.atuacao}"
+                                         var="atua" rowIndexVar="idxAtua"
+                                         id="listaElenco">
+                                <f:facet name="header">
+                                    <p:panelGrid columns="2">
+                                        <p:selectOneMenu value="#{controleFilme.ator}"
+                                                         id="selectAtor">
+                                            <f:converter converterId="converterAtor"/>
+                                            <f:selectItem noSelectionOption="true"
+                                                          itemLabel="Selecione um registro"/>
+                                            <f:selectItems value="#{controleFilme.daoAtor.listaTodos}"
+                                                           var="p" itemLabel="#{p.nome}"/>
+                                        </p:selectOneMenu>
+                                        <p:commandButton value="Adicionar"
+                                                         actionListener="#{controleFilme.adicionarElenco()}"
+                                                         update="listaElenco"
+                                                         id="btnAdicionarElenco"
+                                                         process="btnAdicionarElenco selectAtor"
+                                                         icon="ui-icon-plus"/>
+
+                                    </p:panelGrid>
+                                </f:facet>
+                                <p:column headerText="ID">
+                                    <p:outputLabel value="#{atua.id}"/>
+                                </p:column>
+                                <p:column headerText="Nome">
+                                    <p:outputLabel value="#{atua.nome}"/>
+                                </p:column>       
+                                <p:column headerText="Ações">
+                                    <div align="center">
+
+                                        <p:commandButton id="btnRemoverElenco"
+                                                         icon="ui-icon-trash"
+                                                         actionListener="#{controleFilme.removerElenco(idxAtua)}"
+                                                         process="btnRemoverElenco"
+                                                         update="listaElenco"
+                                                         onclick="if (!confirm('Confirma a exclusão?'))
+                                                                     return false"/>
+                                    </div>
+                                </p:column>
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>
+                </h:form>
+            </p:dialog>
+
+        </ui:define>
+    </ui:composition>
+</html>
+
